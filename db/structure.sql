@@ -1399,7 +1399,7 @@ CREATE TABLE media_files (
     size bigint,
     width integer,
     access_hash text,
-    meta_data text,
+    meta_data_raw text,
     content_type character varying NOT NULL,
     filename character varying,
     guid character varying,
@@ -1409,7 +1409,8 @@ CREATE TABLE media_files (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     uploader_id uuid NOT NULL,
-    conversion_profiles character varying[] DEFAULT '{}'::character varying[]
+    conversion_profiles character varying[] DEFAULT '{}'::character varying[],
+    meta_data jsonb DEFAULT '{}'::jsonb NOT NULL
 );
 
 
@@ -4846,6 +4847,8 @@ INSERT INTO schema_migrations (version) VALUES ('333');
 INSERT INTO schema_migrations (version) VALUES ('334');
 
 INSERT INTO schema_migrations (version) VALUES ('335');
+
+INSERT INTO schema_migrations (version) VALUES ('336');
 
 INSERT INTO schema_migrations (version) VALUES ('34');
 

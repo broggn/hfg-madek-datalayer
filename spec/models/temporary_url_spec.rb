@@ -1,0 +1,64 @@
+require 'spec_helper'
+
+describe TemporaryUrl do
+  include ActiveSupport::Testing::TimeHelpers
+
+  context 'when user exists' do
+
+    let(:user) { FactoryGirl.create(:user) }
+
+    describe 'Creating' do
+      it 'works' do
+        expect(described_class.create user: user).to be_persisted
+      end
+    end
+
+    describe 'A newly instantiated and saved' do
+
+      let :instance do
+        described_class.create user: user
+      end
+
+      it 'has a token' do
+        expect(instance.token).to be_present
+      end
+
+      it 'expires in about 1 year from now' do
+        expires_at = instance.reload.expires_at
+        expect(Time.now + 1.year - 10.minutes).to be < expires_at
+        expect(Time.now + 1.year + 10.minutes).to be > expires_at
+      end
+    end
+  end
+
+  describe '.find_by_token' do
+    let(:user) { create :user }
+    let!(:instance) { described_class.create(user: user) }
+    let(:generated_token) { instance.token }
+
+    context 'when token is not expired' do
+      it 'finds' do
+        expect(described_class.find_by_token(generated_token)).to be
+      end
+    end
+
+    context 'when token is expired' do
+      before { instance.reload }
+
+      it 'does not find' do
+        travel(1.year + 1.second) do
+          expect(instance.expires_at).not_to be_nil
+          expect(described_class.find_by_token(generated_token)).not_to be
+        end
+      end
+    end
+
+    context 'when token is revoked' do
+      let!(:instance) { described_class.create(user: user, revoked: true) }
+
+      it 'does not find' do
+        expect(described_class.find_by_token(generated_token)).not_to be
+      end
+    end
+  end
+end

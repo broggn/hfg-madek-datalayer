@@ -1631,6 +1631,24 @@ CREATE TABLE public.schema_migrations (
 
 
 --
+-- Name: temporary_urls; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.temporary_urls (
+    id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
+    user_id uuid NOT NULL,
+    resource_id uuid,
+    resource_type character varying,
+    token character varying(45) NOT NULL,
+    revoked boolean DEFAULT false NOT NULL,
+    description text,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    expires_at timestamp with time zone DEFAULT (now() + '1 year'::interval) NOT NULL
+);
+
+
+--
 -- Name: usage_terms; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2087,6 +2105,14 @@ ALTER TABLE ONLY public.previews
 
 ALTER TABLE ONLY public.rdf_classes
     ADD CONSTRAINT rdf_classes_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: temporary_urls temporary_urls_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.temporary_urls
+    ADD CONSTRAINT temporary_urls_pkey PRIMARY KEY (id);
 
 
 --
@@ -3190,6 +3216,13 @@ CREATE INDEX index_previews_on_media_type ON public.previews USING btree (media_
 
 
 --
+-- Name: index_temporary_urls_on_resource_type_and_resource_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_temporary_urls_on_resource_type_and_resource_id ON public.temporary_urls USING btree (resource_type, resource_id);
+
+
+--
 -- Name: index_users_on_autocomplete; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3757,6 +3790,13 @@ CREATE TRIGGER update_updated_at_column_of_previews BEFORE UPDATE ON public.prev
 
 
 --
+-- Name: temporary_urls update_updated_at_column_of_temporary_urls; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_updated_at_column_of_temporary_urls BEFORE UPDATE ON public.temporary_urls FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
+
+
+--
 -- Name: usage_terms update_updated_at_column_of_usage_terms; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -4151,6 +4191,14 @@ ALTER TABLE ONLY public.vocabulary_group_permissions
 
 ALTER TABLE ONLY public.filter_set_group_permissions
     ADD CONSTRAINT fk_rails_9cf683b9d3 FOREIGN KEY (group_id) REFERENCES public.groups(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: temporary_urls fk_rails_a22b714e7c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.temporary_urls
+    ADD CONSTRAINT fk_rails_a22b714e7c FOREIGN KEY (user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 
 --
@@ -4896,6 +4944,8 @@ INSERT INTO schema_migrations (version) VALUES ('366');
 INSERT INTO schema_migrations (version) VALUES ('367');
 
 INSERT INTO schema_migrations (version) VALUES ('368');
+
+INSERT INTO schema_migrations (version) VALUES ('369');
 
 INSERT INTO schema_migrations (version) VALUES ('4');
 

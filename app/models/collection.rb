@@ -1,4 +1,5 @@
 class Collection < ActiveRecord::Base
+  attr_accessor :accessed_by_token
   ################################################################################
   # NOTE: The standard `find` and `find_by_id` methods are extended/overridden in
   # app/models/concerns/media_resources/custom_urls in order to accomodate
@@ -61,6 +62,8 @@ class Collection < ActiveRecord::Base
            source: :filter_set
 
   #################################################################################
+
+  has_many :temporary_urls, as: :resource
 
   scope :by_title, lambda{ |title|
     joins(:meta_data)

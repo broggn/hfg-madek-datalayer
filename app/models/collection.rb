@@ -62,6 +62,9 @@ class Collection < ActiveRecord::Base
 
   #################################################################################
 
+  has_many :confidential_links, as: :resource
+  attr_accessor :accessed_by_confidential_link
+
   scope :by_title, lambda{ |title|
     joins(:meta_data)
       .where(meta_data: { meta_key_id: 'madek_core:title' })

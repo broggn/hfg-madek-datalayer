@@ -1123,9 +1123,6 @@ CREATE TABLE public.collections (
 
 CREATE TABLE public.context_keys (
     id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    description text,
-    hint text,
-    label text,
     context_id character varying NOT NULL,
     meta_key_id character varying NOT NULL,
     is_required boolean DEFAULT false NOT NULL,
@@ -1137,10 +1134,7 @@ CREATE TABLE public.context_keys (
     admin_comment text,
     labels public.hstore DEFAULT ''::public.hstore NOT NULL,
     descriptions public.hstore DEFAULT ''::public.hstore NOT NULL,
-    hints public.hstore DEFAULT ''::public.hstore NOT NULL,
-    CONSTRAINT check_description_not_blank CHECK ((description !~ '^\s*$'::text)),
-    CONSTRAINT check_hint_not_blank CHECK ((hint !~ '^\s*$'::text)),
-    CONSTRAINT check_label_not_blank CHECK ((label !~ '^\s*$'::text))
+    hints public.hstore DEFAULT ''::public.hstore NOT NULL
 );
 
 
@@ -1533,9 +1527,6 @@ CREATE TABLE public.meta_keys (
     is_extensible_list boolean DEFAULT false NOT NULL,
     meta_datum_object_type text DEFAULT 'MetaDatum::Text'::text NOT NULL,
     keywords_alphabetical_order boolean DEFAULT true NOT NULL,
-    label text,
-    description text,
-    hint text,
     "position" integer DEFAULT 0 NOT NULL,
     is_enabled_for_media_entries boolean DEFAULT false NOT NULL,
     is_enabled_for_collections boolean DEFAULT false NOT NULL,
@@ -1549,11 +1540,8 @@ CREATE TABLE public.meta_keys (
     descriptions public.hstore DEFAULT ''::public.hstore NOT NULL,
     hints public.hstore DEFAULT ''::public.hstore NOT NULL,
     CONSTRAINT check_allowed_people_subtypes_not_empty_for_meta_datum_people CHECK ((((allowed_people_subtypes IS NOT NULL) AND (COALESCE(array_length(allowed_people_subtypes, 1), 0) > 0)) OR (meta_datum_object_type <> 'MetaDatum::People'::text))),
-    CONSTRAINT check_description_not_blank CHECK ((description !~ '^\s*$'::text)),
-    CONSTRAINT check_hint_not_blank CHECK ((hint !~ '^\s*$'::text)),
     CONSTRAINT check_is_extensible_list_is_boolean_for_meta_datum_keywords CHECK (((((is_extensible_list = true) OR (is_extensible_list = false)) AND (meta_datum_object_type = 'MetaDatum::Keywords'::text)) OR (meta_datum_object_type <> 'MetaDatum::Keywords'::text))),
     CONSTRAINT check_keywords_alphabetical_order_is_boolean_for_meta_datum_key CHECK (((((keywords_alphabetical_order = true) OR (keywords_alphabetical_order = false)) AND (meta_datum_object_type = 'MetaDatum::Keywords'::text)) OR (meta_datum_object_type <> 'MetaDatum::Keywords'::text))),
-    CONSTRAINT check_label_not_blank CHECK ((label !~ '^\s*$'::text)),
     CONSTRAINT check_valid_meta_datum_object_type CHECK ((meta_datum_object_type = ANY (ARRAY['MetaDatum::Licenses'::text, 'MetaDatum::Text'::text, 'MetaDatum::TextDate'::text, 'MetaDatum::Groups'::text, 'MetaDatum::Keywords'::text, 'MetaDatum::Vocables'::text, 'MetaDatum::People'::text, 'MetaDatum::Users'::text]))),
     CONSTRAINT check_valid_text_type CHECK ((text_type = ANY (ARRAY['line'::text, 'block'::text]))),
     CONSTRAINT meta_key_id_chars CHECK (((id)::text ~* '^[a-z0-9\-\_\:]+$'::text)),
@@ -4892,6 +4880,8 @@ INSERT INTO schema_migrations (version) VALUES ('365');
 INSERT INTO schema_migrations (version) VALUES ('366');
 
 INSERT INTO schema_migrations (version) VALUES ('367');
+
+INSERT INTO schema_migrations (version) VALUES ('368');
 
 INSERT INTO schema_migrations (version) VALUES ('4');
 

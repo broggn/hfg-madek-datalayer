@@ -14,12 +14,11 @@ module Concerns
           method_name = field.to_s.singularize
 
           define_method method_name do |locale = nil|
-            send(field)[determine_locale(locale)].presence
+            send(field)[determine_locale(locale)]
           end
 
           define_method "#{method_name}=" do |value|
             send(field)[determine_locale(nil)] = value
-            super(value.presence)
           end
         end
       end
@@ -33,7 +32,6 @@ module Concerns
         values.each_pair do |locale, value|
           send(k)[locale.to_s] = value
         end
-        self[k.singularize] = values[determine_locale(nil).to_sym].presence
       else
         super
       end

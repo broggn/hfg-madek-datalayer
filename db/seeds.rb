@@ -37,24 +37,19 @@ ActiveRecord::Base.transaction do
 
   # find ContextKeys that "overide" a string (like label)
   # with the SAME string and delete those duplicated string(s)
-  %w(label description hint).each do |column_name|
-    ActiveRecord::Base.connection.execute <<-SQL.strip_heredoc
-      UPDATE context_keys
-        SET #{column_name} = NULL
-        FROM meta_keys
-        WHERE meta_key_id = meta_keys.id
-        AND meta_keys.#{column_name} = context_keys.#{column_name}
-    SQL
-
-    ContextKey.includes(:meta_key).find_each do |ck|
-      if ck.labels[DEFAULT_LOCALE] == ck.meta_key.labels[DEFAULT_LOCALE]
-        ck.update_column(:labels, { DEFAULT_LOCALE => nil })
-      end
-      if ck.descriptions[DEFAULT_LOCALE] == ck.meta_key.descriptions[DEFAULT_LOCALE]
-        ck.update_column(:descriptions, { DEFAULT_LOCALE => nil })
-      end
-      if ck.hints[DEFAULT_LOCALE] == ck.meta_key.hints[DEFAULT_LOCALE]
-        ck.update_column(:hints, { DEFAULT_LOCALE => nil })
+  # (for each language/locale)
+  %w(labels descriptions hints).each do |column_name|
+    Settings.madek_available_locales.each do |lang|
+      ContextKey.includes(:meta_key).find_each do |ck|
+        if ck.labels[lang] == ck.meta_key.labels[lang]
+          ck.update_column(:labels, { DEFAULT_LOCALE => nil })
+        end
+        if ck.descriptions[lang] == ck.meta_key.descriptions[lang]
+          ck.update_column(:descriptions, { DEFAULT_LOCALE => nil })
+        end
+        if ck.hints[lang] == ck.meta_key.hints[lang]
+          ck.update_column(:hints, { DEFAULT_LOCALE => nil })
+        end
       end
     end
   end

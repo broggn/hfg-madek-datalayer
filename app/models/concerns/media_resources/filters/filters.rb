@@ -23,7 +23,7 @@ module Concerns
               filter_by_search(filter_opts[:search])
                 .filter_by_meta_data(user, filter_opts[:meta_data])
                 .filter_by_media_files(filter_opts[:media_files])
-                .filter_by_permissions(filter_opts[:permissions])
+                .filter_by_permissions(filter_opts[:permissions], user)
                 .uniq
             end
           end
@@ -89,11 +89,15 @@ module Concerns
             end
           end
 
-          def filter_by_permissions(permissions)
+          def filter_by_permissions(permissions, user)
             if permissions.blank?
               all
             else
-              permissions.reduce(all, :filter_by_permission_helper)
+              permissions.reduce(all, &(
+                proc do |key: nil, value: nil|
+                  filter_by_permission_helper(user, key: key, value: value)
+                end
+              ))
             end
           end
 
@@ -107,7 +111,7 @@ module Concerns
             end
           end
 
-          def filter_by_permission_helper(key: nil, value: nil)
+          def filter_by_permission_helper(user, key: nil, value: nil)
             # NOTE: Both public and visibility allow to filter for public
             # resources. The latter is newer and not in the API but used
             # in the side filter.
@@ -118,12 +122,14 @@ module Concerns
               filter_by_public_view(value)
             when 'visibility'
               filter_by_permission_visibility(value)
+            when 'editability'
+              filter_by_permission_editability(user, value)
             when 'entrusted_to_group'
               entrusted_to_group Group.find(value)
             when 'entrusted_to_user'
               entrusted_to_user User.find(value)
             else
-              raise 'Unrecognized permission key'
+              raise 'Unrecognized permission key: ' + key.to_s
             end
           end
 
@@ -137,6 +143,25 @@ module Concerns
               filter_by_visibility_api
             when 'private'
               filter_by_visibility_private
+            else
+              throw 'Unexpected visibility value: ' + value.to_s
+            end
+          end
+
+          def filter_by_permission_editability(user, value)
+            case value
+            when 'metadata'
+              filter_by_editability_metadata(user)
+            when 'not_metadata'
+              filter_by_editability_not_metadata(user)
+            when 'deletable'
+              filter_by_editability_deletable(user)
+            when 'not_deletable'
+              filter_by_editability_not_deletable(user)
+            when 'permissions'
+              filter_by_editability_permissions(user)
+            when 'not_permissions'
+              filter_by_editability_not_permissions(user)
             else
               throw 'Unexpected visibility value: ' + value.to_s
             end

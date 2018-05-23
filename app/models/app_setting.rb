@@ -16,6 +16,18 @@ class AppSetting < ActiveRecord::Base
     private :"#{name}_existence"
   end
 
+  def self.default_locale
+    first.try(:default_locale) || Settings.madek_default_locale
+  rescue ActiveRecord::StatementInvalid
+    Settings.madek_default_locale
+  end
+
+  def self.available_locales
+    first.try(:available_locales) || Settings.madek_available_locales
+  rescue ActiveRecord::StatementInvalid
+    Settings.madek_available_locales
+  end
+
   validate_set_existence(:featured_set)
 
   validate :catalog_context_keys_types

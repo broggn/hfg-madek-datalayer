@@ -16,14 +16,6 @@ class AppSetting < ActiveRecord::Base
     private :"#{name}_existence"
   end
 
-  [:default_locale, :available_locales].each do |method_name|
-    define_method "self.#{method_name}" do
-      first.try(method_name) || Settings.send("madek_#{method_name}")
-    rescue ActiveRecord::StatementInvalid # case when table doesn't exist during migration
-      Settings.send("madek_#{method_name}")
-    end
-  end
-
   def self.default_locale
     first.try(:default_locale) || Settings.madek_default_locale
   rescue ActiveRecord::StatementInvalid

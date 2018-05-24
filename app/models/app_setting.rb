@@ -17,14 +17,12 @@ class AppSetting < ActiveRecord::Base
   end
 
   [:default_locale, :available_locales].each do |method_name|
-    instance_eval do
-      define_method method_name do
-        begin
-          fallback = Settings.send("madek_#{method_name}")
-          first.try(method_name) || fallback
-        rescue ActiveRecord::StatementInvalid
-          fallback
-        end
+    define_singleton_method method_name do
+      begin
+        fallback = Settings.send("madek_#{method_name}")
+        first.try(method_name) || fallback
+      rescue ActiveRecord::StatementInvalid
+        fallback
       end
     end
   end

@@ -41,7 +41,8 @@
           body: |
             set -eux
             export PATH=~/.rubies/$RUBY/bin:$PATH
-            bundle exec cider-ci_flay app/
+            bundle exec cider-ci_flay app/ \
+            -e app/models/app_setting.rb
 
     lint-ruby:
       name: Lint/Stylecheck with Rubocop

@@ -16,16 +16,17 @@ class AppSetting < ActiveRecord::Base
     private :"#{name}_existence"
   end
 
-  def self.default_locale
-    first.try(:default_locale) || Settings.madek_default_locale
-  rescue ActiveRecord::StatementInvalid
-    Settings.madek_default_locale
-  end
-
-  def self.available_locales
-    first.try(:available_locales) || Settings.madek_available_locales
-  rescue ActiveRecord::StatementInvalid
-    Settings.madek_available_locales
+  [:default_locale, :available_locales].each do |method_name|
+    instance_eval do
+      define_method method_name do
+        begin
+          fallback = Settings.send("madek_#{method_name}")
+          first.try(method_name) || fallback
+        rescue ActiveRecord::StatementInvalid
+          fallback
+        end
+      end
+    end
   end
 
   validate_set_existence(:featured_set)

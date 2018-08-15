@@ -33,7 +33,7 @@ module Concerns
         ActiveRecord::Base.transaction do
           assoc.where(Hash[type, resources_to_remove]).delete_all
           resources_to_add.each do |resource|
-
+            resource.lock!
             assoc << assoc.name.constantize.new(Hash[type, resource,
                                                      :created_by, created_by_user])
           end

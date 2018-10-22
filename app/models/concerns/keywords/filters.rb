@@ -26,7 +26,10 @@ module Concerns
             if UUIDTools::UUID_REGEXP =~ term
               keywords = keywords.where(id: term)
             else
-              keywords = keywords.where('keywords.term ILIKE :t', t: "%#{term}%")
+              keywords = keywords
+                          .where('keywords.term ILIKE :t', t: "%#{term}%")
+                          .order('position(\'' + term + '\' in keywords.term), ' \
+                                 'CHAR_LENGTH(keywords.term)')
             end
           end
 

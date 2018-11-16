@@ -23,10 +23,8 @@ describe TemporaryUrl do
         expect(instance.token).to be_present
       end
 
-      it 'expires in about 1 year from now' do
-        expires_at = instance.reload.expires_at
-        expect(Time.now + 1.year - 10.minutes).to be < expires_at
-        expect(Time.now + 1.year + 10.minutes).to be > expires_at
+      it 'never expires' do
+        expect(instance.reload.expires_at).to be nil
       end
     end
   end
@@ -43,13 +41,13 @@ describe TemporaryUrl do
     end
 
     context 'when token is expired' do
-      before { instance.reload }
+      before do
+        instance.update_attribute(:expires_at, 1.day.ago)
+      end
 
-      it 'does not find' do
-        travel(1.year + 1.second) do
-          expect(instance.expires_at).not_to be_nil
-          expect(described_class.find_by_token(generated_token)).not_to be
-        end
+      it 'is not findable' do
+        expect(instance.expires_at).not_to be_nil
+        expect(described_class.find_by_token(generated_token)).not_to be
       end
     end
 

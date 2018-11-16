@@ -9,12 +9,13 @@ class TemporaryUrl < ActiveRecord::Base
 
   class << self
     def find_by_token(token_param)
-      find_by(
-        'token = ? AND revoked = ? AND expires_at > ?',
-        token_param,
-        false,
-        Time.current
-      )
+      tmp_url = find_by(token: token_param, revoked: false)
+      return nil unless tmp_url
+      if tmp_url.expires_at.nil?
+        tmp_url
+      else
+        tmp_url.expires_at > Time.current ? tmp_url : nil
+      end
     end
   end
 end

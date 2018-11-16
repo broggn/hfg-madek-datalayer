@@ -12,15 +12,8 @@ class CreateTemporaryUrls < ActiveRecord::Migration
 
     add_auto_timestamps :temporary_urls
 
-    add_foreign_key :temporary_urls, :users , on_delete: :cascade, on_update: :cascade
+    add_foreign_key :temporary_urls, :users, on_delete: :cascade, on_update: :cascade
 
-    add_column :temporary_urls, :expires_at, 'timestamp with time zone', null: false
-
-
-    reversible do |dir|
-      dir.up do
-        execute "ALTER TABLE temporary_urls ALTER COLUMN expires_at SET DEFAULT now() + interval '1 year'"
-      end
-    end
+    add_column :temporary_urls, :expires_at, 'timestamp with time zone'
   end
 end

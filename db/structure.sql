@@ -1644,7 +1644,7 @@ CREATE TABLE public.temporary_urls (
     description text,
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now(),
-    expires_at timestamp with time zone DEFAULT (now() + '1 year'::interval) NOT NULL
+    expires_at timestamp with time zone
 );
 
 

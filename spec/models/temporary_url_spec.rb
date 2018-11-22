@@ -45,17 +45,19 @@ describe TemporaryUrl do
         instance.update_attribute(:expires_at, 1.day.ago)
       end
 
-      it 'is not findable' do
+      it 'raises an error' do
         expect(instance.expires_at).not_to be_nil
-        expect(described_class.find_by_token(generated_token)).not_to be
+        expect { described_class.find_by_token(generated_token) }.to \
+          raise_error(ActiveRecord::RecordNotFound, "Couldn't find TemporaryUrl")
       end
     end
 
     context 'when token is revoked' do
       let!(:instance) { described_class.create(user: user, revoked: true) }
 
-      it 'does not find' do
-        expect(described_class.find_by_token(generated_token)).not_to be
+      it 'raises an error' do
+        expect { described_class.find_by_token(generated_token) }.to \
+          raise_error(ActiveRecord::RecordNotFound, "Couldn't find TemporaryUrl")
       end
     end
   end

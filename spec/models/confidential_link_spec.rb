@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe TemporaryUrl do
+describe ConfidentialLink do
   include ActiveSupport::Testing::TimeHelpers
 
   context 'when user exists' do
@@ -29,14 +29,14 @@ describe TemporaryUrl do
     end
   end
 
-  describe '.find_by_token' do
+  describe '.find_by_token!' do
     let(:user) { create :user }
     let!(:instance) { described_class.create(user: user) }
     let(:generated_token) { instance.token }
 
     context 'when token is not expired' do
       it 'finds' do
-        expect(described_class.find_by_token(generated_token)).to be
+        expect(described_class.find_by_token!(generated_token)).to be
       end
     end
 
@@ -47,8 +47,9 @@ describe TemporaryUrl do
 
       it 'raises an error' do
         expect(instance.expires_at).not_to be_nil
-        expect { described_class.find_by_token(generated_token) }.to \
-          raise_error(ActiveRecord::RecordNotFound, "Couldn't find TemporaryUrl")
+        expect { described_class.find_by_token!(generated_token) }.to \
+          raise_error(
+            ActiveRecord::RecordNotFound, "Couldn't find ConfidentialLink")
       end
     end
 
@@ -56,8 +57,9 @@ describe TemporaryUrl do
       let!(:instance) { described_class.create(user: user, revoked: true) }
 
       it 'raises an error' do
-        expect { described_class.find_by_token(generated_token) }.to \
-          raise_error(ActiveRecord::RecordNotFound, "Couldn't find TemporaryUrl")
+        expect { described_class.find_by_token!(generated_token) }.to \
+          raise_error(
+            ActiveRecord::RecordNotFound, "Couldn't find ConfidentialLink")
       end
     end
   end

@@ -1,5 +1,4 @@
 class MediaEntry < ActiveRecord::Base
-  attr_accessor :accessed_by_token
   ################################################################################
   # NOTE: The standard `find` and `find_by_id` methods are extended/overridden in
   # app/models/concerns/media_resources/custom_urls in order to accomodate
@@ -37,7 +36,9 @@ class MediaEntry < ActiveRecord::Base
   has_many :parent_collections,
            through: :collection_media_entry_arcs,
            source: :collection
-  has_many :temporary_urls, as: :resource
+
+  has_many :confidential_links, as: :resource
+  attr_accessor :accessed_by_confidential_link
 
   scope :ordered, -> { reorder(:created_at, :id) }
   scope :published, -> { where(is_published: true) }

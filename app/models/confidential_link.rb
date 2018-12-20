@@ -1,4 +1,4 @@
-class TemporaryUrl < ActiveRecord::Base
+class ConfidentialLink < ActiveRecord::Base
   belongs_to :resource, polymorphic: true
   belongs_to :user
 
@@ -9,12 +9,19 @@ class TemporaryUrl < ActiveRecord::Base
 
   class << self
     def find_by_token(token_param)
-      tmp_url = find_by!(token: token_param, revoked: false)
-      if tmp_url.expires_at.nil? || tmp_url.expires_at > Time.current
-        tmp_url
+      cfl = find_by(token: token_param, revoked: false)
+      if !cfl || cfl.expires_at.nil? || cfl.expires_at > Time.current
+        cfl
+      end
+    end
+
+    def find_by_token!(token_param)
+      if cfl = find_by_token(token_param)
+        cfl
       else
         raise ActiveRecord::RecordNotFound, "Couldn't find #{name}"
       end
     end
+
   end
 end

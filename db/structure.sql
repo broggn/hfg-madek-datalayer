@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.6.10
--- Dumped by pg_dump version 10.5
+-- Dumped from database version 9.6.9
+-- Dumped by pg_dump version 9.6.9
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -1802,6 +1802,19 @@ UNION
 
 
 --
+-- Name: workflows; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.workflows (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    created_at timestamp without time zone DEFAULT '2019-02-28 14:51:38.586791'::timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone DEFAULT '2019-02-28 14:51:38.586791'::timestamp without time zone NOT NULL,
+    name character varying,
+    data jsonb DEFAULT '{}'::jsonb NOT NULL
+);
+
+
+--
 -- Name: zencoder_jobs; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2188,6 +2201,14 @@ ALTER TABLE ONLY public.vocabulary_group_permissions
 
 ALTER TABLE ONLY public.vocabulary_user_permissions
     ADD CONSTRAINT vocabulary_user_permissions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: workflows workflows_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflows
+    ADD CONSTRAINT workflows_pkey PRIMARY KEY (id);
 
 
 --
@@ -5024,6 +5045,8 @@ INSERT INTO schema_migrations (version) VALUES ('371');
 INSERT INTO schema_migrations (version) VALUES ('372');
 
 INSERT INTO schema_migrations (version) VALUES ('4');
+
+INSERT INTO schema_migrations (version) VALUES ('400');
 
 INSERT INTO schema_migrations (version) VALUES ('5');
 

@@ -14,6 +14,16 @@ module Madek
       end
     end
 
+    def add_non_blank_constraints(table_name, *columns)
+      columns.each do |column_name|
+          execute <<-SQL.strip_heredoc
+            ALTER TABLE #{table_name}
+            ADD CONSTRAINT #{column_name}_non_blank
+            CHECK ('^\s*$' !~ ALL(avals(#{column_name})))
+          SQL
+        end
+    end
+
     def auto_update_searchable table_name, columns
       reversible do |dir|
         dir.up do

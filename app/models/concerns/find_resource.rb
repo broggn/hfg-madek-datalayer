@@ -20,7 +20,8 @@ module Concerns
       # can be overwritten for specific cases: see example license.rb
       # defaults to ActiveRecord::Base.find
       def find_resource!(val)
-        find(val)
+        id = val.try(:id) || val
+        find(id)
       end
     end
   end

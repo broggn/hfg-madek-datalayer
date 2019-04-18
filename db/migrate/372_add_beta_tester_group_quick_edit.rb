@@ -1,4 +1,4 @@
-class AddBetaTesterGroupQuickEdit < ActiveRecord::Migration
+class AddBetaTesterGroupQuickEdit < ActiveRecord::Migration[4.2]
   class ::Group < ActiveRecord::Base
     self.table_name = 'groups'
   end

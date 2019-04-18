@@ -1,4 +1,4 @@
-class MetaKey < ActiveRecord::Base
+class MetaKey < ApplicationRecord
 
   include Concerns::MetaKeys::Filters
   include Concerns::Orderable

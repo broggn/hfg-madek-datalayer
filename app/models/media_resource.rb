@@ -1,4 +1,4 @@
-class MediaResource < ActiveRecord::Base
+class MediaResource < ApplicationRecord
   self.table_name = :vw_media_resources
   self.primary_key = :id
 

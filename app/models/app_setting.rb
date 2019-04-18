@@ -1,4 +1,4 @@
-class AppSetting < ActiveRecord::Base
+class AppSetting < ApplicationRecord
   def self.validate_set_existence(name)
     validate :"#{name}_existence", if: proc { |record|
       record.send("#{name}_id").present?

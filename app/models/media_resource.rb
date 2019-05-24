@@ -81,6 +81,6 @@ class MediaResource < ApplicationRecord
   # rubocop:enable Metrics/MethodLength
 
   def cast_to_type
-    @_casted_to_type ||= type.constantize.new(attributes.except('type'))
+    @_casted_to_type ||= becomes(type.constantize)
   end
 end

@@ -1013,7 +1013,6 @@ CREATE TABLE public.app_settings (
 --
 
 CREATE SEQUENCE public.app_settings_id_seq
-    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -1147,7 +1146,8 @@ CREATE TABLE public.collections (
     sorting public.collection_sorting DEFAULT 'created_at DESC'::public.collection_sorting NOT NULL,
     edit_session_updated_at timestamp with time zone DEFAULT now() NOT NULL,
     meta_data_updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    clipboard_user_id character varying
+    clipboard_user_id character varying,
+    workflow_id uuid
 );
 
 
@@ -1846,6 +1846,18 @@ UNION
 
 
 --
+-- Name: workflows; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.workflows (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    name character varying NOT NULL,
+    user_id uuid NOT NULL,
+    is_active boolean DEFAULT true NOT NULL
+);
+
+
+--
 -- Name: zencoder_jobs; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2256,6 +2268,14 @@ ALTER TABLE ONLY public.vocabulary_group_permissions
 
 ALTER TABLE ONLY public.vocabulary_user_permissions
     ADD CONSTRAINT vocabulary_user_permissions_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: workflows workflows_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflows
+    ADD CONSTRAINT workflows_pkey PRIMARY KEY (id);
 
 
 --
@@ -2684,6 +2704,13 @@ CREATE INDEX index_collections_on_responsible_user_id ON public.collections USIN
 --
 
 CREATE INDEX index_collections_on_updated_at ON public.collections USING btree (updated_at);
+
+
+--
+-- Name: index_collections_on_workflow_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_collections_on_workflow_id ON public.collections USING btree (workflow_id);
 
 
 --
@@ -3398,6 +3425,13 @@ CREATE INDEX index_users_on_login ON public.users USING btree (login);
 --
 
 CREATE INDEX index_vocabularies_on_position ON public.vocabularies USING btree ("position");
+
+
+--
+-- Name: index_workflows_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_workflows_on_user_id ON public.workflows USING btree (user_id);
 
 
 --
@@ -4366,6 +4400,14 @@ ALTER TABLE ONLY public.collection_user_permissions
 
 
 --
+-- Name: collections fk_rails_9085ae39f1; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.collections
+    ADD CONSTRAINT fk_rails_9085ae39f1 FOREIGN KEY (workflow_id) REFERENCES public.workflows(id);
+
+
+--
 -- Name: roles fk_rails_973fbfab62; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4395,6 +4437,14 @@ ALTER TABLE ONLY public.meta_data_roles
 
 ALTER TABLE ONLY public.context_keys
     ADD CONSTRAINT fk_rails_b297363c89 FOREIGN KEY (context_id) REFERENCES public.contexts(id);
+
+
+--
+-- Name: workflows fk_rails_b2ae6690e8; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.workflows
+    ADD CONSTRAINT fk_rails_b2ae6690e8 FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -4977,6 +5027,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('386'),
 ('387'),
 ('388'),
+('389'),
+('390'),
 ('4'),
 ('5'),
 ('6'),

@@ -24,3 +24,4 @@ gem 'pry', group: [:test, :development]
 gem 'pry-nav', group: [:test, :development]
 gem 'pry-rails', group: [:development]
 gem 'webmock', group: [:test]
+gem 'listen', group: :development

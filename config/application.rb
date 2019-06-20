@@ -15,6 +15,11 @@ module MadekDatalayer
       << Rails.root.join('initializers')
 
     config.autoload_paths << Rails.root.join('lib')
+    config.autoload_paths << Rails.root.join('app', 'lib')
+
+    # Initialize configuration defaults for originally generated Rails version.
+    config.load_defaults 5.2
+    config.active_record.belongs_to_required_by_default = false
 
     if ENV['RAILS_LOG_LEVEL'].present?
       config.log_level = ENV['RAILS_LOG_LEVEL']
@@ -22,9 +27,10 @@ module MadekDatalayer
       config.log_level = :info
     end
 
-    # Initialize configuration defaults for originally generated Rails version.
-    config.load_defaults 5.2
-    config.active_record.belongs_to_required_by_default = false
+    # always log to stdout
+    logger           = ActiveSupport::Logger.new(STDOUT)
+    logger.formatter = config.log_formatter
+    config.logger    = ActiveSupport::TaggedLogging.new(logger)
 
     # Settings in config/environments/* take precedence over those specified here.
     # Application configuration can go into files in config/initializers

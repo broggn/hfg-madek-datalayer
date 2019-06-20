@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 9.6.8
--- Dumped by pg_dump version 9.6.8
+-- Dumped from database version 9.6.12
+-- Dumped by pg_dump version 10.7
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -988,7 +988,7 @@ CREATE TABLE public.app_settings (
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     brand_logo_url character varying,
     brand_text character varying DEFAULT 'ACME, Inc.'::character varying NOT NULL,
-    sitemap jsonb DEFAULT '[{"Medienarchiv ZHdK": "http://medienarchiv.zhdk.ch"}, {"Madek Project on Github": "https://github.com/Madek"}]'::jsonb NOT NULL,
+    sitemap jsonb DEFAULT '[{"url": "http://medienarchiv.zhdk.ch", "labels": {"de": "Medienarchiv ZHdK", "en": "Media Archiv ZHdK"}}, {"url": "https://github.com/Madek", "labels": {"de": "Madek-Projekt auf GitHub", "en": "Madek Project on GitHub"}}]'::jsonb NOT NULL,
     contexts_for_entry_extra text[] DEFAULT '{}'::text[] NOT NULL,
     contexts_for_list_details text[] DEFAULT '{}'::text[] NOT NULL,
     contexts_for_entry_validation text[] DEFAULT '{}'::text[] NOT NULL,
@@ -5089,6 +5089,8 @@ INSERT INTO schema_migrations (version) VALUES ('382');
 INSERT INTO schema_migrations (version) VALUES ('383');
 
 INSERT INTO schema_migrations (version) VALUES ('384');
+
+INSERT INTO schema_migrations (version) VALUES ('385');
 
 INSERT INTO schema_migrations (version) VALUES ('4');
 

@@ -244,7 +244,19 @@ MADEK_DEFAULT_SETTINGS:
       (Nothing here yet, configure content in [Admin Interface](/admin/app_settings))
 
     sitemap:
-      - "About": "/about/"
-      - "API": "/api/browser/"
-      - "Software Madek": "https://zhdk.ch/madek"
-      - "Madek Project on Github": "https://github.com/Madek"
+      - url: '/about/'
+        labels:
+          de: 'Über'
+          en: 'About'
+      - url: '/api/browser/'
+        labels:
+          de: 'API'
+          en: 'API'
+      - url: 'https://zhdk.ch/madek'
+        labels:
+          de: 'Madek-Software'
+          en: 'Software Madek'
+      - url: 'https://github.com/Madek'
+        labels:
+          de: 'Madek-Projekt auf Github'
+          en: 'Madek Project on Github'

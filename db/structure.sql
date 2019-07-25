@@ -1147,7 +1147,8 @@ CREATE TABLE public.collections (
     edit_session_updated_at timestamp with time zone DEFAULT now() NOT NULL,
     meta_data_updated_at timestamp with time zone DEFAULT now() NOT NULL,
     clipboard_user_id character varying,
-    workflow_id uuid
+    workflow_id uuid,
+    is_master boolean DEFAULT false NOT NULL
 );
 
 
@@ -5029,6 +5030,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('388'),
 ('389'),
 ('390'),
+('391'),
 ('4'),
 ('5'),
 ('6'),

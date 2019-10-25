@@ -55,6 +55,15 @@ FactoryGirl.define do
       end
     end
 
+
+    factory :meta_datum_json, class: MetaDatum::JSON do
+      json {{"some_boolean": true, "zero_point": -273.15, "seq": [1, 2, nil]}}
+      meta_key do
+        MetaKey.find_by(id: 'test:json') \
+          || FactoryGirl.create(:meta_key_json)
+      end
+    end
+
     factory :meta_datum_keywords, class: MetaDatum::Keywords do
       meta_key do
         MetaKey.find_by(id: 'test:keywords') \

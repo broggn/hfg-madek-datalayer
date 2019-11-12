@@ -1,5 +1,5 @@
 FactoryGirl.define do
-  factory :meta_datum_keyword, class: MetaDatum::Keyword do
+ factory :meta_datum_keyword, class: MetaDatum::Keyword do
     association :created_by, factory: :user
     keyword
     association :meta_datum, factory: :meta_datum_keywords

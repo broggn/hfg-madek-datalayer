@@ -26,11 +26,16 @@ FactoryGirl.define do
   factory :research_video_media_entry, parent: :media_entry do
 
     # TODO remove the follwoing line
-    responsible_user_id '653bf621-45c8-4a23-a15e-b29036aa9b10'
+    # responsible_user_id '653bf621-45c8-4a23-a15e-b29036aa9b10'
+
+    get_full_size true
+    get_metadata_and_previews true
+    is_published true
 
     after :create do |me|
-      FactoryGirl.create :research_video_media_file, media_entry: me
+      mf = FactoryGirl.create :research_video_media_file, media_entry: me
 
+      FactoryGirl.create :zencoder_job, media_file_id: mf.id, state: 'finished'
 
       vocabulary = Vocabulary.find_by(id: VOCABULARY_ID) ||
         FactoryGirl.create(:vocabulary,

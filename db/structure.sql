@@ -1038,6 +1038,7 @@ CREATE TABLE public.app_settings (
 --
 
 CREATE SEQUENCE public.app_settings_id_seq
+    AS integer
     START WITH 1
     INCREMENT BY 1
     NO MINVALUE
@@ -5079,6 +5080,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('393'),
 ('394'),
 ('395'),
+('396'),
 ('4'),
 ('5'),
 ('6'),

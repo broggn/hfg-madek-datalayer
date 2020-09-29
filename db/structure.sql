@@ -115,7 +115,8 @@ CREATE TYPE public.collection_sorting AS ENUM (
     'title ASC',
     'title DESC',
     'last_change',
-    'manual'
+    'manual ASC',
+    'manual DESC'
 );
 
 
@@ -1183,8 +1184,8 @@ CREATE TABLE public.collections (
     clipboard_user_id character varying,
     workflow_id uuid,
     is_master boolean DEFAULT false NOT NULL,
-    sorting public.collection_sorting DEFAULT 'created_at DESC'::public.collection_sorting NOT NULL,
-    already_ordered_manually boolean DEFAULT false NOT NULL
+    already_ordered_manually boolean DEFAULT false NOT NULL,
+    sorting public.collection_sorting DEFAULT 'created_at DESC'::public.collection_sorting NOT NULL
 );
 
 
@@ -5149,6 +5150,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('406'),
 ('407'),
 ('408'),
+('409'),
 ('5'),
 ('6'),
 ('7'),

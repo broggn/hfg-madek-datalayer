@@ -18,8 +18,10 @@ module Concerns
               .reorder("meta_data.string DESC, #{table_name}.id DESC")
           when 'last_change'
             order_by_last_edit_session.reorder('last_change DESC')
-          when 'manual'
+          when 'manual ASC'
             order_by_manual_sorting.reorder('arc_position ASC')
+          when 'manual DESC'
+            order_by_manual_sorting.reorder('arc_position DESC NULLS LAST')
           else
             raise 'Invalid order spec! ' + order_spec
           end

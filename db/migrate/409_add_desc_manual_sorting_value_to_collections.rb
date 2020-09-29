@@ -6,7 +6,8 @@ class AddDescManualSortingValueToCollections < ActiveRecord::Migration[5.2]
     'title DESC',
     'last_change',
     'manual ASC',
-    'manual DESC'
+    'manual DESC',
+    'manual' # must be deleted in final version!
   ].freeze
 
   def change

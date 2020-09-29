@@ -116,7 +116,8 @@ CREATE TYPE public.collection_sorting AS ENUM (
     'title DESC',
     'last_change',
     'manual ASC',
-    'manual DESC'
+    'manual DESC',
+    'manual'
 );
 
 

@@ -92,6 +92,7 @@ class MediaResource < ApplicationRecord
   end
   # rubocop:enable Metrics/MethodLength
 
+  # rubocop:disable Metrics/MethodLength
   def self.order_by_manual_sorting
     select(
       <<-SQL
@@ -119,6 +120,7 @@ class MediaResource < ApplicationRecord
       SQL
     )
   end
+  # rubocop:enable Metrics/MethodLength
 
   def cast_to_type
     @_casted_to_type ||= becomes(type.constantize)

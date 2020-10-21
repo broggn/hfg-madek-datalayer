@@ -119,10 +119,6 @@ class Collection < ApplicationRecord
                "(#{Collection.descendent_collection_tree_sql_for(self.id)})")
   end
 
-  def set_as_already_ordered_manually
-    update!(already_ordered_manually: true)
-  end
-
   def self.descendent_collection_tree_sql_for(collection_id)
     raise 'Not an UUID!' unless UUIDTools::UUID_REGEXP =~ collection_id
 

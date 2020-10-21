@@ -99,6 +99,7 @@ class MediaResource < ApplicationRecord
         coalesce(cmea.position, cca.position, cfsa.position) AS arc_position
       SQL
     )
+    .distinct('vw_media_resources.id')
     .joins(
       <<-SQL
         LEFT JOIN collection_media_entry_arcs cmea

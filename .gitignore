@@ -22,3 +22,5 @@
 /config/settings.local.yml
 backups
 .ruby-gemset
+
+.DS_Store

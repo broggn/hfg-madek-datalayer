@@ -914,6 +914,22 @@ $$;
 
 
 --
+-- Name: set_properties_media_file_parts(); Type: FUNCTION; Schema: public; Owner: -
+--
+
+CREATE FUNCTION public.set_properties_media_file_parts() RETURNS trigger
+    LANGUAGE plpgsql
+    AS $$
+BEGIN
+  NEW.md5 = md5(NEW.blob);
+  NEW.sha256 = encode(digest(NEW.blob, 'sha256'), 'hex');
+  NEW.size = length(NEW.blob);
+  RETURN NEW;
+END;
+$$;
+
+
+--
 -- Name: static_pages_check_content_for_default_locale(); Type: FUNCTION; Schema: public; Owner: -
 --
 
@@ -1062,34 +1078,14 @@ CREATE TABLE public.app_settings (
 
 
 --
--- Name: app_settings_id_seq; Type: SEQUENCE; Schema: public; Owner: -
---
-
-CREATE SEQUENCE public.app_settings_id_seq
-    AS integer
-    START WITH 1
-    INCREMENT BY 1
-    NO MINVALUE
-    NO MAXVALUE
-    CACHE 1;
-
-
---
--- Name: app_settings_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
---
-
-ALTER SEQUENCE public.app_settings_id_seq OWNED BY public.app_settings.id;
-
-
---
 -- Name: ar_internal_metadata; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.ar_internal_metadata (
     key character varying NOT NULL,
     value character varying,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
 );
 
 
@@ -1218,8 +1214,8 @@ CREATE TABLE public.collections (
 CREATE TABLE public.confidential_links (
     id uuid DEFAULT public.uuid_generate_v4() NOT NULL,
     user_id uuid NOT NULL,
-    resource_type character varying,
     resource_id uuid,
+    resource_type character varying,
     token character varying(45) NOT NULL,
     revoked boolean DEFAULT false NOT NULL,
     description text,
@@ -1326,6 +1322,67 @@ CREATE TABLE public.delegations_workflows (
     delegation_id uuid NOT NULL,
     workflow_id uuid NOT NULL
 );
+
+
+--
+-- Name: derivative_profiles; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.derivative_profiles (
+    label text NOT NULL,
+    content_type text,
+    description text,
+    config jsonb
+);
+
+
+--
+-- Name: TABLE derivative_profiles; Type: COMMENT; Schema: public; Owner: -
+--
+
+COMMENT ON TABLE public.derivative_profiles IS 'Derivatives (previews) are generated based on matches
+on the content_type.
+';
+
+
+--
+-- Name: previews; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.previews (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    media_file_id uuid NOT NULL,
+    height integer,
+    width integer,
+    content_type character varying,
+    filename character varying,
+    thumbnail character varying,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    media_type character varying NOT NULL,
+    conversion_profile character varying,
+    derivative_profile_id text
+);
+
+
+--
+-- Name: derivatives; Type: VIEW; Schema: public; Owner: -
+--
+
+CREATE VIEW public.derivatives AS
+ SELECT previews.id,
+    previews.media_file_id,
+    previews.height,
+    previews.width,
+    previews.content_type,
+    previews.filename,
+    previews.thumbnail,
+    previews.created_at,
+    previews.updated_at,
+    previews.media_type,
+    previews.conversion_profile,
+    previews.derivative_profile_id
+   FROM public.previews;
 
 
 --
@@ -1468,7 +1525,7 @@ CREATE TABLE public.groups (
     type character varying DEFAULT 'Group'::character varying NOT NULL,
     person_id uuid,
     searchable text DEFAULT ''::text NOT NULL,
-    CONSTRAINT check_valid_type CHECK (((type)::text = ANY ((ARRAY['AuthenticationGroup'::character varying, 'InstitutionalGroup'::character varying, 'Group'::character varying])::text[])))
+    CONSTRAINT check_valid_type CHECK (((type)::text = ANY (ARRAY[('AuthenticationGroup'::character varying)::text, ('InstitutionalGroup'::character varying)::text, ('Group'::character varying)::text])))
 );
 
 
@@ -1599,6 +1656,25 @@ CREATE TABLE public.media_entry_user_permissions (
 
 
 --
+-- Name: media_file_parts; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.media_file_parts (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    blob bytea NOT NULL,
+    part integer,
+    start integer,
+    size integer,
+    md5 text,
+    sha256 text,
+    upload_id uuid,
+    media_file_id uuid,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now()
+);
+
+
+--
 -- Name: media_files; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1618,7 +1694,49 @@ CREATE TABLE public.media_files (
     created_at timestamp with time zone DEFAULT now() NOT NULL,
     updated_at timestamp with time zone DEFAULT now() NOT NULL,
     uploader_id uuid NOT NULL,
-    conversion_profiles character varying[] DEFAULT '{}'::character varying[]
+    conversion_profiles character varying[] DEFAULT '{}'::character varying[],
+    media_store_id text,
+    sha256 text
+);
+
+
+--
+-- Name: media_stores; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.media_stores (
+    id text NOT NULL,
+    description text,
+    configuration jsonb,
+    type text DEFAULT 'database'::text NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT check_allowed_types CHECK ((type = ANY (ARRAY['database'::text, 'filesystem'::text, 'S3'::text]))),
+    CONSTRAINT check_at_most_one_database CHECK (((type <> 'database'::text) OR ((id = 'database'::text) AND (type = 'database'::text))))
+);
+
+
+--
+-- Name: media_stores_groups; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.media_stores_groups (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    group_id uuid NOT NULL,
+    media_store_id text NOT NULL,
+    priority integer DEFAULT 0 NOT NULL
+);
+
+
+--
+-- Name: media_stores_users; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.media_stores_users (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    media_store_id text NOT NULL,
+    priority integer DEFAULT 0 NOT NULL
 );
 
 
@@ -1638,7 +1756,7 @@ CREATE TABLE public.meta_data (
     meta_data_updated_at timestamp with time zone DEFAULT now() NOT NULL,
     json jsonb,
     other_media_entry_id uuid,
-    CONSTRAINT check_valid_type CHECK (((type)::text = ANY ((ARRAY['MetaDatum::Groups'::character varying, 'MetaDatum::Keywords'::character varying, 'MetaDatum::Licenses'::character varying, 'MetaDatum::People'::character varying, 'MetaDatum::Roles'::character varying, 'MetaDatum::Text'::character varying, 'MetaDatum::TextDate'::character varying, 'MetaDatum::Users'::character varying, 'MetaDatum::Vocables'::character varying, 'MetaDatum::JSON'::character varying, 'MetaDatum::MediaEntry'::character varying])::text[]))),
+    CONSTRAINT check_valid_type CHECK (((type)::text = ANY (ARRAY[('MetaDatum::Groups'::character varying)::text, ('MetaDatum::Keywords'::character varying)::text, ('MetaDatum::Licenses'::character varying)::text, ('MetaDatum::People'::character varying)::text, ('MetaDatum::Roles'::character varying)::text, ('MetaDatum::Text'::character varying)::text, ('MetaDatum::TextDate'::character varying)::text, ('MetaDatum::Users'::character varying)::text, ('MetaDatum::Vocables'::character varying)::text, ('MetaDatum::JSON'::character varying)::text, ('MetaDatum::MediaEntry'::character varying)::text]))),
     CONSTRAINT meta_data_is_related CHECK ((((media_entry_id IS NULL) AND (collection_id IS NULL) AND (filter_set_id IS NOT NULL)) OR ((media_entry_id IS NULL) AND (collection_id IS NOT NULL) AND (filter_set_id IS NULL)) OR ((media_entry_id IS NOT NULL) AND (collection_id IS NULL) AND (filter_set_id IS NULL))))
 );
 
@@ -1755,25 +1873,6 @@ CREATE TABLE public.people (
 
 
 --
--- Name: previews; Type: TABLE; Schema: public; Owner: -
---
-
-CREATE TABLE public.previews (
-    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
-    media_file_id uuid NOT NULL,
-    height integer,
-    width integer,
-    content_type character varying,
-    filename character varying,
-    thumbnail character varying,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL,
-    media_type character varying NOT NULL,
-    conversion_profile character varying
-);
-
-
---
 -- Name: previous_group_ids; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -1855,6 +1954,38 @@ CREATE TABLE public.static_pages (
     created_at timestamp without time zone DEFAULT now() NOT NULL,
     updated_at timestamp without time zone DEFAULT now() NOT NULL,
     CONSTRAINT name_non_blank CHECK (((name)::text !~ '^ *$'::text))
+);
+
+
+--
+-- Name: system_admins; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.system_admins (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL
+);
+
+
+--
+-- Name: uploads; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.uploads (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    md5 text,
+    sha256 text,
+    uploader_id uuid NOT NULL,
+    size integer NOT NULL,
+    content_type text DEFAULT 'application/octet-stream'::text NOT NULL,
+    filename text,
+    error text,
+    state text DEFAULT 'announced'::text NOT NULL,
+    media_store_id text NOT NULL,
+    media_file_id uuid,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT valid_state CHECK ((state = ANY (ARRAY['announced'::text, 'started'::text, 'completed'::text, 'finished'::text, 'failed'::text])))
 );
 
 
@@ -2183,6 +2314,14 @@ ALTER TABLE ONLY public.delegations
 
 
 --
+-- Name: derivative_profiles derivative_profiles_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.derivative_profiles
+    ADD CONSTRAINT derivative_profiles_pkey PRIMARY KEY (label);
+
+
+--
 -- Name: edit_sessions edit_sessions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2303,11 +2442,43 @@ ALTER TABLE ONLY public.media_entry_user_permissions
 
 
 --
+-- Name: media_file_parts media_file_parts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.media_file_parts
+    ADD CONSTRAINT media_file_parts_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: media_files media_files_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.media_files
     ADD CONSTRAINT media_files_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: media_stores_groups media_stores_groups_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.media_stores_groups
+    ADD CONSTRAINT media_stores_groups_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: media_stores media_stores_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.media_stores
+    ADD CONSTRAINT media_stores_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: media_stores_users media_stores_users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.media_stores_users
+    ADD CONSTRAINT media_stores_users_pkey PRIMARY KEY (id);
 
 
 --
@@ -2407,19 +2578,27 @@ ALTER TABLE ONLY public.roles
 
 
 --
--- Name: schema_migrations schema_migrations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.schema_migrations
-    ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
-
-
---
 -- Name: static_pages static_pages_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.static_pages
     ADD CONSTRAINT static_pages_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: system_admins system_admins_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_admins
+    ADD CONSTRAINT system_admins_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: uploads uploads_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.uploads
+    ADD CONSTRAINT uploads_pkey PRIMARY KEY (id);
 
 
 --
@@ -3510,6 +3689,20 @@ CREATE INDEX index_media_entry_user_permissions_on_user_id ON public.media_entry
 
 
 --
+-- Name: index_media_file_parts_on_media_file_id_and_part; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_media_file_parts_on_media_file_id_and_part ON public.media_file_parts USING btree (media_file_id, part);
+
+
+--
+-- Name: index_media_file_parts_on_upload_id_and_part; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_media_file_parts_on_upload_id_and_part ON public.media_file_parts USING btree (upload_id, part);
+
+
+--
 -- Name: index_media_files_on_extension; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3531,10 +3724,59 @@ CREATE INDEX index_media_files_on_media_entry_id ON public.media_files USING btr
 
 
 --
+-- Name: index_media_files_on_media_store_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_media_files_on_media_store_id ON public.media_files USING btree (media_store_id);
+
+
+--
 -- Name: index_media_files_on_media_type; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX index_media_files_on_media_type ON public.media_files USING btree (media_type);
+
+
+--
+-- Name: index_media_stores_groups_on_group_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_media_stores_groups_on_group_id ON public.media_stores_groups USING btree (group_id);
+
+
+--
+-- Name: index_media_stores_groups_on_group_id_and_media_store_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_media_stores_groups_on_group_id_and_media_store_id ON public.media_stores_groups USING btree (group_id, media_store_id);
+
+
+--
+-- Name: index_media_stores_groups_on_media_store_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_media_stores_groups_on_media_store_id ON public.media_stores_groups USING btree (media_store_id);
+
+
+--
+-- Name: index_media_stores_users_on_media_store_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_media_stores_users_on_media_store_id ON public.media_stores_users USING btree (media_store_id);
+
+
+--
+-- Name: index_media_stores_users_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_media_stores_users_on_user_id ON public.media_stores_users USING btree (user_id);
+
+
+--
+-- Name: index_media_stores_users_on_user_id_and_media_store_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_media_stores_users_on_user_id_and_media_store_id ON public.media_stores_users USING btree (user_id, media_store_id);
 
 
 --
@@ -3776,6 +4018,20 @@ CREATE UNIQUE INDEX index_static_pages_on_name ON public.static_pages USING btre
 
 
 --
+-- Name: index_uploads_on_media_file_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_uploads_on_media_file_id ON public.uploads USING btree (media_file_id);
+
+
+--
+-- Name: index_uploads_on_uploader_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_uploads_on_uploader_id ON public.uploads USING btree (uploader_id);
+
+
+--
 -- Name: index_users_on_autocomplete; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3902,6 +4158,13 @@ CREATE UNIQUE INDEX unique_login_idx ON public.users USING btree (login);
 
 
 --
+-- Name: unique_schema_migrations; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX unique_schema_migrations ON public.schema_migrations USING btree (version);
+
+
+--
 -- Name: users_searchable_idx; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -3976,6 +4239,13 @@ CREATE TRIGGER propagate_meta_data_updates_to_media_resource AFTER INSERT OR DEL
 --
 
 CREATE TRIGGER propagate_people_updates_to_meta_data_people AFTER INSERT OR UPDATE ON public.people FOR EACH ROW EXECUTE PROCEDURE public.propagate_people_updates_to_meta_data_people();
+
+
+--
+-- Name: media_file_parts set_properties_media_file_parts; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER set_properties_media_file_parts BEFORE INSERT OR UPDATE ON public.media_file_parts FOR EACH ROW EXECUTE PROCEDURE public.set_properties_media_file_parts();
 
 
 --
@@ -4189,13 +4459,6 @@ CREATE TRIGGER update_updated_at_column_of_app_settings BEFORE UPDATE ON public.
 
 
 --
--- Name: ar_internal_metadata update_updated_at_column_of_ar_internal_metadata; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER update_updated_at_column_of_ar_internal_metadata BEFORE UPDATE ON public.ar_internal_metadata FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
-
-
---
 -- Name: collection_api_client_permissions update_updated_at_column_of_collection_api_client_permissions; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -4357,10 +4620,24 @@ CREATE TRIGGER update_updated_at_column_of_media_entry_user_permissions BEFORE U
 
 
 --
+-- Name: media_file_parts update_updated_at_column_of_media_file_parts; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_updated_at_column_of_media_file_parts BEFORE UPDATE ON public.media_file_parts FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
+
+
+--
 -- Name: media_files update_updated_at_column_of_media_files; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER update_updated_at_column_of_media_files BEFORE UPDATE ON public.media_files FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
+
+
+--
+-- Name: media_stores update_updated_at_column_of_media_stores; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_updated_at_column_of_media_stores BEFORE UPDATE ON public.media_stores FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
 
 
 --
@@ -4382,6 +4659,13 @@ CREATE TRIGGER update_updated_at_column_of_people BEFORE UPDATE ON public.people
 --
 
 CREATE TRIGGER update_updated_at_column_of_previews BEFORE UPDATE ON public.previews FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
+
+
+--
+-- Name: uploads update_updated_at_column_of_uploads; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_updated_at_column_of_uploads BEFORE UPDATE ON public.uploads FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
 
 
 --
@@ -4749,6 +5033,14 @@ ALTER TABLE ONLY public.filter_sets
 
 
 --
+-- Name: media_files fk_rails_0e271bcc4b; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.media_files
+    ADD CONSTRAINT fk_rails_0e271bcc4b FOREIGN KEY (media_store_id) REFERENCES public.media_stores(id);
+
+
+--
 -- Name: context_keys fk_rails_2957e036b5; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4773,11 +5065,43 @@ ALTER TABLE ONLY public.api_clients
 
 
 --
+-- Name: media_file_parts fk_rails_47587feb67; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.media_file_parts
+    ADD CONSTRAINT fk_rails_47587feb67 FOREIGN KEY (media_file_id) REFERENCES public.media_files(id);
+
+
+--
 -- Name: groups_users fk_rails_4e63edbd27; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.groups_users
     ADD CONSTRAINT fk_rails_4e63edbd27 FOREIGN KEY (group_id) REFERENCES public.groups(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: media_stores_groups fk_rails_4ec7425a31; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.media_stores_groups
+    ADD CONSTRAINT fk_rails_4ec7425a31 FOREIGN KEY (group_id) REFERENCES public.groups(id);
+
+
+--
+-- Name: system_admins fk_rails_53b10fbe11; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.system_admins
+    ADD CONSTRAINT fk_rails_53b10fbe11 FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+
+
+--
+-- Name: media_file_parts fk_rails_5f6f1c956c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.media_file_parts
+    ADD CONSTRAINT fk_rails_5f6f1c956c FOREIGN KEY (upload_id) REFERENCES public.uploads(id);
 
 
 --
@@ -4789,19 +5113,19 @@ ALTER TABLE ONLY public.vocabulary_group_permissions
 
 
 --
+-- Name: previews fk_rails_87c3c67bb8; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.previews
+    ADD CONSTRAINT fk_rails_87c3c67bb8 FOREIGN KEY (derivative_profile_id) REFERENCES public.derivative_profiles(label) ON UPDATE CASCADE ON DELETE SET NULL;
+
+
+--
 -- Name: confidential_links fk_rails_8c2cb96882; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.confidential_links
     ADD CONSTRAINT fk_rails_8c2cb96882 FOREIGN KEY (user_id) REFERENCES public.users(id) ON UPDATE CASCADE ON DELETE CASCADE;
-
-
---
--- Name: collection_user_permissions fk_rails_8f830fb7e7; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public.collection_user_permissions
-    ADD CONSTRAINT fk_rails_8f830fb7e7 FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
 --
@@ -4834,6 +5158,14 @@ ALTER TABLE ONLY public.filter_set_group_permissions
 
 ALTER TABLE ONLY public.delegations_groups
     ADD CONSTRAINT fk_rails_a507ac19bd FOREIGN KEY (delegation_id) REFERENCES public.delegations(id);
+
+
+--
+-- Name: media_stores_users fk_rails_aca436f96c; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.media_stores_users
+    ADD CONSTRAINT fk_rails_aca436f96c FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
@@ -4893,11 +5225,35 @@ ALTER TABLE ONLY public.media_entries
 
 
 --
+-- Name: uploads fk_rails_c569a13d0d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.uploads
+    ADD CONSTRAINT fk_rails_c569a13d0d FOREIGN KEY (media_store_id) REFERENCES public.media_stores(id);
+
+
+--
 -- Name: media_entry_group_permissions fk_rails_c5e91a50bb; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.media_entry_group_permissions
     ADD CONSTRAINT fk_rails_c5e91a50bb FOREIGN KEY (group_id) REFERENCES public.groups(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: media_stores_groups fk_rails_cd89d9366d; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.media_stores_groups
+    ADD CONSTRAINT fk_rails_cd89d9366d FOREIGN KEY (media_store_id) REFERENCES public.media_stores(id);
+
+
+--
+-- Name: uploads fk_rails_d29b037216; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.uploads
+    ADD CONSTRAINT fk_rails_d29b037216 FOREIGN KEY (uploader_id) REFERENCES public.users(id);
 
 
 --
@@ -4949,11 +5305,19 @@ ALTER TABLE ONLY public.delegations_groups
 
 
 --
--- Name: filter_set_user_permissions fk_rails_fe38b294ce; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: media_stores_users fk_rails_fe7156acd6; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public.filter_set_user_permissions
-    ADD CONSTRAINT fk_rails_fe38b294ce FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
+ALTER TABLE ONLY public.media_stores_users
+    ADD CONSTRAINT fk_rails_fe7156acd6 FOREIGN KEY (media_store_id) REFERENCES public.media_stores(id);
+
+
+--
+-- Name: uploads fk_rails_ff9019d9da; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.uploads
+    ADD CONSTRAINT fk_rails_ff9019d9da FOREIGN KEY (media_file_id) REFERENCES public.media_files(id);
 
 
 --
@@ -5506,6 +5870,10 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('411'),
 ('412'),
 ('5'),
+('500'),
+('501'),
+('502'),
+('503'),
 ('6'),
 ('7'),
 ('8'),

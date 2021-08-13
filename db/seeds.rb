@@ -1,4 +1,4 @@
-# load seed data from YAML file and apply it to DB
+c load seed data from YAML file and apply it to DB
 ####################################################################################
 
 DB_SEEDS ||= YAML.load_file(Rails.root.join('db','seeds_and_defaults.yml'))

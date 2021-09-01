@@ -1701,6 +1701,21 @@ CREATE TABLE public.media_files (
 
 
 --
+-- Name: media_service_settings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.media_service_settings (
+    id integer DEFAULT 0 NOT NULL,
+    upload_min_part_size integer DEFAULT 1048576 NOT NULL,
+    upload_max_part_size integer DEFAULT 104857600 NOT NULL,
+    private_key text,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT id_is_zero CHECK ((id = 0))
+);
+
+
+--
 -- Name: media_stores; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -4018,6 +4033,13 @@ CREATE UNIQUE INDEX index_static_pages_on_name ON public.static_pages USING btre
 
 
 --
+-- Name: index_system_admins_on_user_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX index_system_admins_on_user_id ON public.system_admins USING btree (user_id);
+
+
+--
 -- Name: index_uploads_on_media_file_id; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -4631,6 +4653,13 @@ CREATE TRIGGER update_updated_at_column_of_media_file_parts BEFORE UPDATE ON pub
 --
 
 CREATE TRIGGER update_updated_at_column_of_media_files BEFORE UPDATE ON public.media_files FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
+
+
+--
+-- Name: media_service_settings update_updated_at_column_of_media_service_settings; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_updated_at_column_of_media_service_settings BEFORE UPDATE ON public.media_service_settings FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
 
 
 --
@@ -5874,6 +5903,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('501'),
 ('502'),
 ('503'),
+('504'),
 ('6'),
 ('7'),
 ('8'),

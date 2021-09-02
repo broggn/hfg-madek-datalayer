@@ -34,6 +34,7 @@ class User < ApplicationRecord
 
   has_and_belongs_to_many :groups
   has_one :admin, dependent: :destroy
+  has_one :system_admin, dependent: :destroy
   belongs_to :accepted_usage_terms, class_name: 'UsageTerms'
 
   #############################################################
@@ -56,6 +57,10 @@ class User < ApplicationRecord
 
   def admin?
     !admin.nil?
+  end
+
+  def system_admin?
+    !system_admin.nil?
   end
 
   #############################################################

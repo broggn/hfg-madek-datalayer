@@ -70,27 +70,32 @@ class MediaStores < ActiveRecord::Migration[5.2]
               Pathname.new(Madek::Constants::FILE_STORAGE_DIR) \
                 .join("..").join("uploads").to_s }
 
-          MediaFile.in_batches.each do |mfs|
-            mfs.each do |mf|
-              mf.update_attributes(media_store_id: legacy_fs.id)
-            end
+        MediaFile.in_batches.each do |mfs|
+          mfs.each do |mf|
+            mf.update_attributes(media_store_id: legacy_fs.id)
           end
+        end
 
+        signed_in_users_group = Group.find_by(id: Madek::Constants::SIGNED_IN_USERS_GROUP_ID)
+
+        if signed_in_users_group
           execute <<-SQL.strip_heredoc
             INSERT INTO media_stores_groups
               (group_id, media_store_id, priority)
-              VALUES ('#{Madek::Constants::SIGNED_IN_USERS_GROUP_ID}', '#{legacy_fs.id}', 1);
+              VALUES ('#{signed_in_users_group.id}', '#{legacy_fs.id}', 1);
           SQL
-
+        end
 
         db_fs = MediaStore.create type: :database,
           id: 'database'
 
-        execute <<-SQL.strip_heredoc
-          INSERT INTO media_stores_groups
-            (group_id, media_store_id, priority)
-            VALUES ('#{Madek::Constants::SIGNED_IN_USERS_GROUP_ID}', '#{db_fs.id}', 3);
-        SQL
+        if signed_in_users_group
+          execute <<-SQL.strip_heredoc
+            INSERT INTO media_stores_groups
+              (group_id, media_store_id, priority)
+              VALUES ('#{signed_in_users_group.id}', '#{db_fs.id}', 3);
+          SQL
+        end
 
       end
     end

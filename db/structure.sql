@@ -995,6 +995,24 @@ CREATE TABLE public.admins (
 
 
 --
+-- Name: analyzers; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.analyzers (
+    id text NOT NULL,
+    description text,
+    enabled boolean DEFAULT true NOT NULL,
+    external boolean DEFAULT true,
+    public_key text,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT external CHECK ((((external = true) AND ((enabled = false) OR ((enabled = true) AND (public_key IS NOT NULL)))) OR (external = false))),
+    CONSTRAINT internal CHECK ((((external = false) AND (id = 'internal'::text) AND (public_key IS NULL)) OR (external = true))),
+    CONSTRAINT simple_id CHECK ((id ~ '^[a-z0-9]+[a-z0-9.-]+[a-z0-9]+$'::text))
+);
+
+
+--
 -- Name: api_clients; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2198,6 +2216,14 @@ CREATE TABLE public.zencoder_jobs (
 
 ALTER TABLE ONLY public.admins
     ADD CONSTRAINT admin_users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: analyzers analyzers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.analyzers
+    ADD CONSTRAINT analyzers_pkey PRIMARY KEY (id);
 
 
 --
@@ -4460,6 +4486,13 @@ CREATE TRIGGER update_updated_at_column_of_admins BEFORE UPDATE ON public.admins
 
 
 --
+-- Name: analyzers update_updated_at_column_of_analyzers; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_updated_at_column_of_analyzers BEFORE UPDATE ON public.analyzers FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
+
+
+--
 -- Name: api_clients update_updated_at_column_of_api_clients; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -5904,6 +5937,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('502'),
 ('503'),
 ('504'),
+('505'),
 ('6'),
 ('7'),
 ('8'),

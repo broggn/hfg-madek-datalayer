@@ -1233,6 +1233,18 @@ CREATE TABLE public.confidential_links (
 
 
 --
+-- Name: context_api_client_permissions; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.context_api_client_permissions (
+    id uuid DEFAULT public.gen_random_uuid() NOT NULL,
+    api_client_id uuid,
+    context_id character varying,
+    view boolean DEFAULT true NOT NULL
+);
+
+
+--
 -- Name: context_keys; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2166,6 +2178,14 @@ ALTER TABLE ONLY public.confidential_links
 
 
 --
+-- Name: context_api_client_permissions context_api_client_permissions_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.context_api_client_permissions
+    ADD CONSTRAINT context_api_client_permissions_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: contexts contexts_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -2513,6 +2533,13 @@ CREATE INDEX collection_collection_idx ON public.collection_collection_arcs USIN
 --
 
 CREATE INDEX collection_media_entry_idx ON public.collection_media_entry_arcs USING btree (collection_id, "order");
+
+
+--
+-- Name: context_api_client_permissions_unique_compound_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX context_api_client_permissions_unique_compound_index ON public.context_api_client_permissions USING btree (api_client_id, context_id);
 
 
 --
@@ -2982,6 +3009,20 @@ CREATE INDEX index_collections_on_workflow_id ON public.collections USING btree 
 --
 
 CREATE INDEX index_confidential_links_on_resource_type_and_resource_id ON public.confidential_links USING btree (resource_type, resource_id);
+
+
+--
+-- Name: index_context_api_client_permissions_on_api_client_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_context_api_client_permissions_on_api_client_id ON public.context_api_client_permissions USING btree (api_client_id);
+
+
+--
+-- Name: index_context_api_client_permissions_on_context_id; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX index_context_api_client_permissions_on_context_id ON public.context_api_client_permissions USING btree (context_id);
 
 
 --
@@ -4784,6 +4825,14 @@ ALTER TABLE ONLY public.filter_sets
 
 
 --
+-- Name: context_api_client_permissions fk_rails_0c6c85d382; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.context_api_client_permissions
+    ADD CONSTRAINT fk_rails_0c6c85d382 FOREIGN KEY (context_id) REFERENCES public.contexts(id) ON DELETE CASCADE;
+
+
+--
 -- Name: context_keys fk_rails_2957e036b5; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -4821,6 +4870,14 @@ ALTER TABLE ONLY public.groups_users
 
 ALTER TABLE ONLY public.vocabulary_group_permissions
     ADD CONSTRAINT fk_rails_8550647b84 FOREIGN KEY (group_id) REFERENCES public.groups(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: context_api_client_permissions fk_rails_8ad9d08392; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.context_api_client_permissions
+    ADD CONSTRAINT fk_rails_8ad9d08392 FOREIGN KEY (api_client_id) REFERENCES public.api_clients(id) ON DELETE CASCADE;
 
 
 --
@@ -5573,7 +5630,10 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('411'),
 ('412'),
 ('413'),
+<<<<<<< HEAD
 ('414'),
+=======
+>>>>>>> 70c8b19 (add api client permissions for contexts)
 ('5'),
 ('6'),
 ('7'),

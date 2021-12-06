@@ -18,6 +18,10 @@ module Concerns
             .or(arel_table[:responsible_delegation_id].in(user.delegation_ids))
         end
       end
+
+      def restricted_contexts
+        Context.restricted_for_resource(self)
+      end
     end
   end
 end

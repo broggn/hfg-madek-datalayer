@@ -1088,8 +1088,8 @@ ALTER SEQUENCE public.app_settings_id_seq OWNED BY public.app_settings.id;
 CREATE TABLE public.ar_internal_metadata (
     key character varying NOT NULL,
     value character varying,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
 );
 
 
@@ -1365,8 +1365,8 @@ CREATE TABLE public.edit_sessions (
 CREATE TABLE public.favorite_collections (
     user_id uuid NOT NULL,
     collection_id uuid NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
 );
 
 
@@ -1377,8 +1377,8 @@ CREATE TABLE public.favorite_collections (
 CREATE TABLE public.favorite_filter_sets (
     user_id uuid NOT NULL,
     filter_set_id uuid NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
 );
 
 
@@ -1389,8 +1389,8 @@ CREATE TABLE public.favorite_filter_sets (
 CREATE TABLE public.favorite_media_entries (
     user_id uuid NOT NULL,
     media_entry_id uuid NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL
 );
 
 
@@ -1785,8 +1785,8 @@ CREATE TABLE public.previews (
     content_type character varying,
     filename character varying,
     thumbnail character varying,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    created_at timestamp with time zone NOT NULL,
+    updated_at timestamp with time zone NOT NULL,
     media_type character varying NOT NULL,
     conversion_profile character varying
 );
@@ -4237,45 +4237,10 @@ CREATE TRIGGER update_searchable_column_of_users BEFORE INSERT OR UPDATE ON publ
 
 
 --
--- Name: admins update_updated_at_column_of_admins; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER update_updated_at_column_of_admins BEFORE UPDATE ON public.admins FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
-
-
---
--- Name: api_clients update_updated_at_column_of_api_clients; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER update_updated_at_column_of_api_clients BEFORE UPDATE ON public.api_clients FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
-
-
---
 -- Name: api_tokens update_updated_at_column_of_api_tokens; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER update_updated_at_column_of_api_tokens BEFORE UPDATE ON public.api_tokens FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
-
-
---
--- Name: app_settings update_updated_at_column_of_app_settings; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER update_updated_at_column_of_app_settings BEFORE UPDATE ON public.app_settings FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
-
-
---
--- Name: ar_internal_metadata update_updated_at_column_of_ar_internal_metadata; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER update_updated_at_column_of_ar_internal_metadata BEFORE UPDATE ON public.ar_internal_metadata FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
-
-
---
--- Name: collection_api_client_permissions update_updated_at_column_of_collection_api_client_permissions; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER update_updated_at_column_of_collection_api_client_permissions BEFORE UPDATE ON public.collection_api_client_permissions FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
 
 
 --
@@ -4286,31 +4251,10 @@ CREATE TRIGGER update_updated_at_column_of_collection_collection_arcs BEFORE UPD
 
 
 --
--- Name: collection_group_permissions update_updated_at_column_of_collection_group_permissions; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER update_updated_at_column_of_collection_group_permissions BEFORE UPDATE ON public.collection_group_permissions FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
-
-
---
 -- Name: collection_media_entry_arcs update_updated_at_column_of_collection_media_entry_arcs; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER update_updated_at_column_of_collection_media_entry_arcs BEFORE UPDATE ON public.collection_media_entry_arcs FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
-
-
---
--- Name: collection_user_permissions update_updated_at_column_of_collection_user_permissions; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER update_updated_at_column_of_collection_user_permissions BEFORE UPDATE ON public.collection_user_permissions FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
-
-
---
--- Name: collections update_updated_at_column_of_collections; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER update_updated_at_column_of_collections BEFORE UPDATE ON public.collections FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
 
 
 --
@@ -4321,171 +4265,10 @@ CREATE TRIGGER update_updated_at_column_of_confidential_links BEFORE UPDATE ON p
 
 
 --
--- Name: context_keys update_updated_at_column_of_context_keys; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER update_updated_at_column_of_context_keys BEFORE UPDATE ON public.context_keys FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
-
-
---
--- Name: custom_urls update_updated_at_column_of_custom_urls; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER update_updated_at_column_of_custom_urls BEFORE UPDATE ON public.custom_urls FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
-
-
---
--- Name: favorite_collections update_updated_at_column_of_favorite_collections; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER update_updated_at_column_of_favorite_collections BEFORE UPDATE ON public.favorite_collections FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
-
-
---
--- Name: favorite_filter_sets update_updated_at_column_of_favorite_filter_sets; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER update_updated_at_column_of_favorite_filter_sets BEFORE UPDATE ON public.favorite_filter_sets FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
-
-
---
--- Name: favorite_media_entries update_updated_at_column_of_favorite_media_entries; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER update_updated_at_column_of_favorite_media_entries BEFORE UPDATE ON public.favorite_media_entries FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
-
-
---
--- Name: filter_set_api_client_permissions update_updated_at_column_of_filter_set_api_client_permissions; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER update_updated_at_column_of_filter_set_api_client_permissions BEFORE UPDATE ON public.filter_set_api_client_permissions FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
-
-
---
--- Name: filter_set_group_permissions update_updated_at_column_of_filter_set_group_permissions; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER update_updated_at_column_of_filter_set_group_permissions BEFORE UPDATE ON public.filter_set_group_permissions FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
-
-
---
--- Name: filter_set_user_permissions update_updated_at_column_of_filter_set_user_permissions; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER update_updated_at_column_of_filter_set_user_permissions BEFORE UPDATE ON public.filter_set_user_permissions FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
-
-
---
--- Name: filter_sets update_updated_at_column_of_filter_sets; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER update_updated_at_column_of_filter_sets BEFORE UPDATE ON public.filter_sets FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
-
-
---
--- Name: io_interfaces update_updated_at_column_of_io_interfaces; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER update_updated_at_column_of_io_interfaces BEFORE UPDATE ON public.io_interfaces FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
-
-
---
--- Name: io_mappings update_updated_at_column_of_io_mappings; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER update_updated_at_column_of_io_mappings BEFORE UPDATE ON public.io_mappings FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
-
-
---
--- Name: keywords update_updated_at_column_of_keywords; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER update_updated_at_column_of_keywords BEFORE UPDATE ON public.keywords FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
-
-
---
--- Name: media_entries update_updated_at_column_of_media_entries; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER update_updated_at_column_of_media_entries BEFORE UPDATE ON public.media_entries FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
-
-
---
--- Name: media_entry_api_client_permissions update_updated_at_column_of_media_entry_api_client_permissions; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER update_updated_at_column_of_media_entry_api_client_permissions BEFORE UPDATE ON public.media_entry_api_client_permissions FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
-
-
---
--- Name: media_entry_group_permissions update_updated_at_column_of_media_entry_group_permissions; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER update_updated_at_column_of_media_entry_group_permissions BEFORE UPDATE ON public.media_entry_group_permissions FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
-
-
---
--- Name: media_entry_user_permissions update_updated_at_column_of_media_entry_user_permissions; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER update_updated_at_column_of_media_entry_user_permissions BEFORE UPDATE ON public.media_entry_user_permissions FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
-
-
---
--- Name: media_files update_updated_at_column_of_media_files; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER update_updated_at_column_of_media_files BEFORE UPDATE ON public.media_files FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
-
-
---
--- Name: meta_data_keywords update_updated_at_column_of_meta_data_keywords; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER update_updated_at_column_of_meta_data_keywords BEFORE UPDATE ON public.meta_data_keywords FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
-
-
---
--- Name: people update_updated_at_column_of_people; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER update_updated_at_column_of_people BEFORE UPDATE ON public.people FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
-
-
---
--- Name: previews update_updated_at_column_of_previews; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER update_updated_at_column_of_previews BEFORE UPDATE ON public.previews FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
-
-
---
--- Name: usage_terms update_updated_at_column_of_usage_terms; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER update_updated_at_column_of_usage_terms BEFORE UPDATE ON public.usage_terms FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
-
-
---
--- Name: users update_updated_at_column_of_users; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER update_updated_at_column_of_users BEFORE UPDATE ON public.users FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
-
-
---
 -- Name: workflows update_updated_at_column_of_workflows; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER update_updated_at_column_of_workflows BEFORE UPDATE ON public.workflows FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
-
-
---
--- Name: zencoder_jobs update_updated_at_column_of_zencoder_jobs; Type: TRIGGER; Schema: public; Owner: -
---
-
-CREATE TRIGGER update_updated_at_column_of_zencoder_jobs BEFORE UPDATE ON public.zencoder_jobs FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE PROCEDURE public.update_updated_at_column();
 
 
 --
@@ -5630,10 +5413,8 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('411'),
 ('412'),
 ('413'),
-<<<<<<< HEAD
 ('414'),
-=======
->>>>>>> 70c8b19 (add api client permissions for contexts)
+('415'),
 ('5'),
 ('6'),
 ('7'),

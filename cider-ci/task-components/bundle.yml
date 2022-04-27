@@ -22,6 +22,8 @@ scripts:
         ruby-install --no-install-deps $RUBY_ENGINE $RUBY_VERSION
       fi
 
+      gem update --system # update `gem` to newest verion
+
       if [ ! -f ~/.rubies/$RUBY/bin/bundle ]; then
         gem install bundler
       fi

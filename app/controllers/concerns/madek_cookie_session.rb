@@ -14,7 +14,7 @@ module Concerns
                     remote_addr: request.env["REMOTE_ADDR"]}
       )
       cookies[COOKIE_NAME] = {
-        expires: remember ? auth_system.session_max_lifetime_hours.from_now : nil,
+        expires: remember ? auth_system.session_max_lifetime_hours.hours.from_now : nil,
         value: @session.token}
       user.update! last_signed_in_at: Time.zone.now
       users_group = AuthenticationGroup.find_or_initialize_by \

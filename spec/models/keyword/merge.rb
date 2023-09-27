@@ -25,13 +25,19 @@ describe Keyword do
       expect(md1.reload.keywords).to eq [k2]
     end
 
-    it 'recursive merge like A -> B, B -> C' do
+    it 'elaborate merge including recursion: A -> B, B -> D, C -> D' do
       k1 = FactoryBot.create(:keyword)
       k2 = FactoryBot.create(:keyword)
       k3 = FactoryBot.create(:keyword)
+      k4 = FactoryBot.create(:keyword)
       k1.merge_to(k2)
-      k2.merge_to(k3)
-      expect(k3.previous.map(&:previous_id).to_set).to eq [k1.id, k2.id].to_set
+      k2.merge_to(k4)
+      k3.merge_to(k4)
+      expect(k4.previous.map(&:previous_id).to_set).to eq [k1.id, k2.id, k3.id].to_set
+      expect(Keyword.find_by_id(k1.id)).not_to be
+      expect(Keyword.find_by_id(k2.id)).not_to be
+      expect(Keyword.find_by_id(k3.id)).not_to be
+      binding.pry
     end
   end
 end

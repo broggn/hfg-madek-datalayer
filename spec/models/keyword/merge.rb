@@ -22,7 +22,7 @@ describe Keyword do
       md1 = FactoryBot.create(:meta_datum_keywords, keywords: [k1, k2])
       k1.merge_to(k2)
       expect(Keyword.find_by_id(k1.id)).not_to be
-      expect(md1.reload.keywords.to_set).to eq [k1].to_set
+      expect(md1.reload.keywords).to eq [k2]
     end
   end
 end

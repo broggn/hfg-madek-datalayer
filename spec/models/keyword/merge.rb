@@ -24,6 +24,15 @@ describe Keyword do
       expect(Keyword.find_by_id(k1.id)).not_to be
       expect(md1.reload.keywords).to eq [k2]
     end
+
+    it 'recursive merge like A -> B, B -> C' do
+      k1 = FactoryBot.create(:keyword)
+      k2 = FactoryBot.create(:keyword)
+      k3 = FactoryBot.create(:keyword)
+      k1.merge_to(k2)
+      k2.merge_to(k3)
+      expect(k3.previous.map(&:previous_id).to_set).to eq [k1.id, k2.id].to_set
+    end
   end
 end
 

@@ -1828,6 +1828,37 @@ CREATE TABLE public.meta_data_roles (
 
 
 --
+-- Name: notifications; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.notifications (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    is_acknowledged boolean DEFAULT false NOT NULL,
+    content text NOT NULL,
+    email_id uuid,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL
+);
+
+
+--
+-- Name: notifications_settings; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.notifications_settings (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    user_id uuid NOT NULL,
+    deliver_via_email boolean DEFAULT false NOT NULL,
+    deliver_via_ui boolean DEFAULT false NOT NULL,
+    deliver_via_email_regularity character varying DEFAULT 'immediately'::character varying NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    CONSTRAINT check_email_regularity_value CHECK (((deliver_via_email_regularity)::text = ANY ((ARRAY['immediately'::character varying, 'daily'::character varying, 'weekly'::character varying])::text[])))
+);
+
+
+--
 -- Name: people; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -2463,6 +2494,22 @@ ALTER TABLE ONLY public.context_keys
 
 ALTER TABLE ONLY public.meta_keys
     ADD CONSTRAINT meta_keys_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: notifications notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT notifications_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: notifications_settings notifications_settings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notifications_settings
+    ADD CONSTRAINT notifications_settings_pkey PRIMARY KEY (id);
 
 
 --
@@ -4768,6 +4815,20 @@ CREATE TRIGGER update_updated_at_column_of_meta_data_keywords BEFORE UPDATE ON p
 
 
 --
+-- Name: notifications update_updated_at_column_of_notifications; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_updated_at_column_of_notifications BEFORE UPDATE ON public.notifications FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE FUNCTION public.update_updated_at_column();
+
+
+--
+-- Name: notifications_settings update_updated_at_column_of_notifications_settings; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_updated_at_column_of_notifications_settings BEFORE UPDATE ON public.notifications_settings FOR EACH ROW WHEN ((old.* IS DISTINCT FROM new.*)) EXECUTE FUNCTION public.update_updated_at_column();
+
+
+--
 -- Name: people update_updated_at_column_of_people; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -5735,6 +5796,7 @@ INSERT INTO "schema_migrations" (version) VALUES
 ('15'),
 ('16'),
 ('17'),
+('18'),
 ('2'),
 ('3'),
 ('4'),

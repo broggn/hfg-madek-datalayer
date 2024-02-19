@@ -1871,10 +1871,14 @@ CREATE TABLE public.notifications (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     user_id uuid NOT NULL,
     is_acknowledged boolean DEFAULT false NOT NULL,
+    is_delivered_via_email boolean DEFAULT false NOT NULL,
+    is_delivered_via_ui boolean DEFAULT false NOT NULL,
     content text NOT NULL,
     email_id uuid,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
+    CONSTRAINT check_delivery_types_with_is_acknowledged CHECK ((((NOT is_delivered_via_ui) AND (NOT is_delivered_via_email) AND (NOT is_acknowledged)) OR (is_delivered_via_ui AND (NOT is_delivered_via_email) AND (NOT is_acknowledged)) OR (is_delivered_via_ui AND is_delivered_via_email AND (NOT is_acknowledged)) OR ((NOT is_delivered_via_ui) AND is_delivered_via_email AND (NOT is_acknowledged)) OR (is_delivered_via_ui AND (NOT is_delivered_via_email) AND is_acknowledged) OR (is_delivered_via_ui AND is_delivered_via_email AND is_acknowledged))),
+    CONSTRAINT check_is_delivered_via_email_and_email_id CHECK (((is_delivered_via_email AND (email_id IS NOT NULL)) OR ((NOT is_delivered_via_email) AND (email_id IS NULL))))
 );
 
 
@@ -1888,8 +1892,8 @@ CREATE TABLE public.notifications_settings (
     deliver_via_email boolean DEFAULT false NOT NULL,
     deliver_via_ui boolean DEFAULT false NOT NULL,
     deliver_via_email_regularity character varying DEFAULT 'immediately'::character varying NOT NULL,
-    created_at timestamp with time zone DEFAULT now() NOT NULL,
-    updated_at timestamp with time zone DEFAULT now() NOT NULL,
+    created_at timestamp with time zone DEFAULT now(),
+    updated_at timestamp with time zone DEFAULT now(),
     CONSTRAINT check_email_regularity_value CHECK (((deliver_via_email_regularity)::text = ANY ((ARRAY['immediately'::character varying, 'daily'::character varying, 'weekly'::character varying])::text[])))
 );
 
@@ -5793,6 +5797,22 @@ ALTER TABLE ONLY public.meta_data_roles
 
 ALTER TABLE ONLY public.meta_keys
     ADD CONSTRAINT meta_keys_allowed_rdf_class_fkey FOREIGN KEY (allowed_rdf_class) REFERENCES public.rdf_classes(id) ON UPDATE CASCADE;
+
+
+--
+-- Name: notifications notifications_email_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT notifications_email_id_fk FOREIGN KEY (email_id) REFERENCES public.emails(id);
+
+
+--
+-- Name: notifications notifications_user_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.notifications
+    ADD CONSTRAINT notifications_user_id_fk FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
 --

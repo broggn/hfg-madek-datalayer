@@ -1,5 +1,8 @@
 # user is the system oriented representation of a User
 
+require 'net/ldap'
+require 'net/ldap/dn'
+
 class User < ApplicationRecord
   include Concerns::FindResource
   include Concerns::Users::Delegations
@@ -88,7 +91,46 @@ class User < ApplicationRecord
     end
   end
 
-  def authenticate(pw)
+  def ldap_authenticate(pw)
+    ldap = Net::LDAP.new :host => "ldap.hfg-karlsruhe.de",
+                         :port => "ldaps",
+                         :encryption => {
+                           :method => :simple_tls
+                         },
+                         :auth => {
+                           :method => :simple
+                         },
+                         :base => 'ou=people,dc=hfg-karlsruhe,dc=de',
+                         :filter => "(uid=%u)"
+
+    dn = Net::LDAP::DN.new 'uid', self.login, 'ou=people,dc=hfg-karlsruhe,dc=de'
+    ldap.auth dn, pw
+    if ldap.bind
+      email = nil
+      sn = nil
+      givenName = nil
+      ldap.search(:base => dn) do |entry|
+        if entry[:mail]
+          email = entry[:mail].first
+        end
+        if entry[:sn]
+          sn = entry[:sn].first
+        end
+        if entry[:givenName]
+          givenName = entry[:givenName].first
+        end
+      end
+      self.create_person(:first_name => givenName, :last_name => sn)
+      self.email = email
+      self.password = pw
+      self.save
+      self.save_new_password
+    else
+      nil
+    end
+  end
+  
+  def sql_authenticate(pw)
     sql= <<-SQL.strip_heredoc
         SELECT (auth_systems_users.data = crypt(:password, auth_systems_users.data)) AS pw_matches 
         FROM auth_systems_users
@@ -102,7 +144,13 @@ class User < ApplicationRecord
     res = ActiveRecord::Base.connection.execute(
       ApplicationRecord.sanitize_sql([sql, password: pw, user_id: self.id]))
     res.first["pw_matches"] && self
+  rescue
+    nil
   end
+
+  #def authenticate(pw)
+  #  sql_authenticate(pw) || ldap_authenticate(pw)
+  #end
 
 
   #############################################################

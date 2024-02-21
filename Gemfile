@@ -30,3 +30,6 @@ gem 'webmock', group: [:test]
 
 # fix: the version that rails requires vanished, force newer version. see <https://github.com/rails/rails/issues/41750>
 gem 'mimemagic'
+
+# for hfg ldap support
+gem 'net-ldap', '~> 0.15.0'
